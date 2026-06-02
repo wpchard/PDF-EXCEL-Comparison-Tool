@@ -1,5 +1,4 @@
-#functions
-# Import libraries:
+#helper functions for the TFFF comparison tool. these functions perform specific tasks such as converting PDFs to Excel, normalizing serial numbers, fixing common formatting issues from PDF imports, and determining the status of each entry based on merge results and date comparisons. they are designed to be called by the main functions in comparison_tool_functions.py to keep the code organized and modular.
 import pandas as pd
 import datetime
 from tkinter.filedialog import askopenfilename
@@ -69,8 +68,6 @@ def get_file_location(label="input"):
         print("No file selected.")
         exit()
     return file_path
-
-
 
 # This function checks if a given value is a valid date. It handles various formats and ensures that the date falls within a reasonable range (2020-2035). It also filters out values that are likely to be non-date text, such as those starting with letters or empty strings.
 def is_valid_date(value):

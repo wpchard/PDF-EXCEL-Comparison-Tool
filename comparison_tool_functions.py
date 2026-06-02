@@ -1,18 +1,16 @@
-#functions
+#main functions for the TFFF comparison tool. these functions handle the file input, data cleaning, merging and comparing, and output of the final report. they utilize helper functions from the comparison_tool_helper_functions.py file to perform specific cleaning and normalization tasks on the data.
 # Import libraries:
 import pandas as pd
 import numpy as np
 import time
 from tkinter import Tk
 from tkinter.filedialog import asksaveasfilename
-from comparison_tool_helper_functions import ( convert_pdf_to_excel,get_file_location, determine_status, fix_single_column, remove_row_number_column, normalize_serial, normalize_scan_description, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
+from comparison_tool_helper_functions import (convert_pdf_to_excel,get_file_location, determine_status, fix_single_column, remove_row_number_column, normalize_serial, normalize_scan_description, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
 
 #prints header and gets file paths of the two documents to compare. handles both pdf and excel files.
 def get_file_paths():
-    print("FF3 TFFF Comparison Tool - Version 3.2\n")
-
+    print("FF3 TFFF Comparison Tool - Version 3.3\n")
     print("Choose two files. Pick the older file first or the program will not execute correctly.")
-
    
     tfff_old = get_file_location("OLD")
     tfff_new = get_file_location("NEW")    
@@ -27,7 +25,6 @@ def get_file_paths():
     print("New file:", tfff_new)
     print("Reading Excel files...\n")
     return tfff_old, tfff_new
-
 
 #function to find the directory to save the output file. also adds the name of the file that includes the date of creation.
 def get_output_path():
@@ -45,7 +42,6 @@ def get_output_path():
 def read_and_clean_sheets(file_path):
 
     excel_file = pd.ExcelFile(file_path)
-
     dataframes = []
 
     for sheet_name in excel_file.sheet_names:
@@ -67,15 +63,12 @@ def read_and_clean_sheets(file_path):
     return combined
 
 def assign_columns(df, sheet_name):
-
     # Remove extra columns
     if len(df.columns) > 8:
-
         print(
             f"  Sheet '{sheet_name}': "
             f"Removing extra columns"
         )
-
         df = df.iloc[:, :8]
 
     # Pad missing columns
