@@ -229,7 +229,6 @@ def determine_status(row):
     return 'Unknown'
 
 def auto_fit_columns(file_path, sheet_name):
-    from openpyxl import load_workbook
     
     workbook = load_workbook(file_path)
     worksheet = workbook[sheet_name]
