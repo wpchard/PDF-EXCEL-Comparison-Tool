@@ -3,10 +3,9 @@ This program can take either pdf files or excel files, converting the pdfs into 
 
 
 Steps for use
-1. double click the program
-2. choose the older report
-3. choose the newer report
-4. if either report was a pdf, a new excel sheet of the table will be created automatically
+1. choose the older report
+2. choose the newer report
+3. if either report was a pdf, a new excel sheet of the table will be created automatically
 4. wait for processing to complete
 5. choose the name and where to save the newly created report
 
