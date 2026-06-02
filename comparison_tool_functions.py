@@ -5,7 +5,8 @@ import numpy as np
 import time
 from tkinter import Tk
 from tkinter.filedialog import asksaveasfilename
-from comparison_tool_helper_functions import (convert_pdf_to_excel,get_file_location, determine_status, fix_single_column, remove_row_number_column, normalize_serial, normalize_scan_description, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
+from openpyxl.utils import get_column_letter
+from comparison_tool_helper_functions import (convert_pdf_to_excel,get_file_location, determine_status, fix_single_column, remove_row_number_column, normalize_serial, normalize_scan_description, auto_fit_columns, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
 
 #prints header and gets file paths of the two documents to compare. handles both pdf and excel files.
 def get_file_paths():
@@ -169,5 +170,11 @@ def export_report(df, output_path):
     #Combine everything and export 
     final_df = pd.concat([df,blank_row,summary_title,status_summary,blank_row,total_changed_row,total_rows_row], ignore_index=True)
     final_df.to_excel(output_path, sheet_name="Showing Update Info", index=False)
+    
+    # Auto-fit column widths
+    auto_fit_columns(output_path, "Showing Update Info")
+    
     print(f"\nReport exported to: {output_path}")
+
+
 

@@ -5,6 +5,8 @@ from tkinter.filedialog import askopenfilename
 import camelot
 import os
 from tkinter import Tk
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
 #define some commonly used variables that will be used in multiple functions
 EXPECTED_COLUMNS = ['DATE RECEIVED', 'SERIAL NO.', 'CCAM', 'CUST #', 'CUSTOMER NAME', 'ORIG. WO#', 'LAST SCAN DATE', 'LAST SCAN DESCRIPTION']
 merge_key = "SERIAL NO."
@@ -54,8 +56,35 @@ def convert_pdf_to_excel(tfff):
     )
     #save to excel and return path
     final_df.to_excel(excel_path, index=False)
+    
+    # Auto-fit column widths
+    _auto_fit_columns_helper(excel_path)
+    
     print(f"\nCreated: {excel_path}")
     return excel_path
+
+def _auto_fit_columns_helper(file_path):
+    workbook = load_workbook(file_path)
+    worksheet = workbook.active
+    
+    for column in worksheet.columns:
+        max_length = 0
+        column_letter = get_column_letter(column[0].column)
+        
+        for cell in column:
+            try:
+                if cell.value:
+                    cell_length = len(str(cell.value))
+                    if cell_length > max_length:
+                        max_length = cell_length
+            except:
+                pass
+        
+        # Set column width with some padding (1.2 multiplier for better readability)
+        adjusted_width = (max_length + 2) * 1.2
+        worksheet.column_dimensions[column_letter].width = adjusted_width
+    
+    workbook.save(file_path)
 
 #gets excel file path from the user
 def get_file_location(label="input"):
@@ -198,3 +227,28 @@ def determine_status(row):
     
     #catch strange cases
     return 'Unknown'
+
+def auto_fit_columns(file_path, sheet_name):
+    from openpyxl import load_workbook
+    
+    workbook = load_workbook(file_path)
+    worksheet = workbook[sheet_name]
+    
+    for column in worksheet.columns:
+        max_length = 0
+        column_letter = get_column_letter(column[0].column)
+        
+        for cell in column:
+            try:
+                if cell.value:
+                    cell_length = len(str(cell.value))
+                    if cell_length > max_length:
+                        max_length = cell_length
+            except:
+                pass
+        
+        # Set column width with some padding (1.2 multiplier for better readability)
+        adjusted_width = (max_length + 2) * 1.2
+        worksheet.column_dimensions[column_letter].width = adjusted_width
+    
+    workbook.save(file_path)
