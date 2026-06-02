@@ -14,15 +14,9 @@ old_date_col = f"{date_column}_OLD"
 
 
 # This function converts a PDF file to Excel format by extracting tables using Camelot. It prompts the user to select a PDF file, processes the tables to extract relevant information based on fixed character positions, and saves the cleaned data to a new Excel file in the same directory as the original PDF. The function returns the path to the newly created Excel file for further processing.
-def convert_pdf_to_excel(label="output"):
+def convert_pdf_to_excel(tfff):
     Tk().withdraw()
-    print(f"Select {label} PDF file:")
-    pdf_path = askopenfilename(
-        filetypes=[("PDF Files", "*.pdf")]
-    )
-    if not pdf_path:
-        print("No file selected.")
-        exit()
+    pdf_path = tfff
     tables = camelot.read_pdf(
         pdf_path,
         pages="all",
@@ -65,16 +59,17 @@ def convert_pdf_to_excel(label="output"):
     return excel_path
 
 #gets excel file path from the user
-def get_input_path_for_excel(label="input"):
+def get_file_location(label="input"):
     Tk().withdraw()
-    print(f"Select {label} Excel file:")
+    print(f"Select {label} PDF or Excel file:")
     file_path = askopenfilename(
-        filetypes=[("Excel Files", "*.xlsx")]
+        filetypes=[("All Supported", "*.pdf *.xlsx"), ("PDF Files", "*.pdf"), ("Excel Files", "*.xlsx")]
     )
     if not file_path:
         print("No file selected.")
         exit()
     return file_path
+
 
 
 # This function checks if a given value is a valid date. It handles various formats and ensures that the date falls within a reasonable range (2020-2035). It also filters out values that are likely to be non-date text, such as those starting with letters or empty strings.
