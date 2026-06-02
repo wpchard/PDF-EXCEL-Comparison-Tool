@@ -5,7 +5,7 @@ import numpy as np
 import time
 from tkinter import Tk
 from tkinter.filedialog import asksaveasfilename
-from comparison_tool_helper_functions import ( convert_pdf_to_excel,get_input_path_for_excel, determine_status, fix_single_column, remove_row_number_column, normalize_serial, normalize_scan_description, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
+from comparison_tool_helper_functions import ( convert_pdf_to_excel,get_file_location, determine_status, fix_single_column, remove_row_number_column, normalize_serial, normalize_scan_description, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
 
 #prints header and gets file paths of the two documents to compare. handles both pdf and excel files.
 def get_file_paths():
