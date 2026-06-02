@@ -55,36 +55,11 @@ def convert_pdf_to_excel(tfff):
         f"{base_name}.xlsx"
     )
     #save to excel and return path
-    final_df.to_excel(excel_path, index=False)
-    
-    # Auto-fit column widths
-    _auto_fit_columns_helper(excel_path)
+    final_df.to_excel(excel_path, index=False) 
     
     print(f"\nCreated: {excel_path}")
     return excel_path
 
-def _auto_fit_columns_helper(file_path):
-    workbook = load_workbook(file_path)
-    worksheet = workbook.active
-    
-    for column in worksheet.columns:
-        max_length = 0
-        column_letter = get_column_letter(column[0].column)
-        
-        for cell in column:
-            try:
-                if cell.value:
-                    cell_length = len(str(cell.value))
-                    if cell_length > max_length:
-                        max_length = cell_length
-            except:
-                pass
-        
-        # Set column width with some padding (1.2 multiplier for better readability)
-        adjusted_width = (max_length + 2) * 1.2
-        worksheet.column_dimensions[column_letter].width = adjusted_width
-    
-    workbook.save(file_path)
 
 #gets excel file path from the user
 def get_file_location(label="input"):
