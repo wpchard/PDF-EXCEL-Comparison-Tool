@@ -7,25 +7,21 @@ from tkinter import Tk
 from tkinter.filedialog import asksaveasfilename
 from comparison_tool_helper_functions import ( convert_pdf_to_excel,get_input_path_for_excel, determine_status, fix_single_column, remove_row_number_column, normalize_serial, normalize_scan_description, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
 
-
 #prints header and gets file paths of the two documents to compare. handles both pdf and excel files.
 def get_file_paths():
     print("FF3 TFFF Comparison Tool - Version 3.2\n")
-    print("Enter 1 to select PDF files or 2 to select Excel files:")
-    user_input = input("Input: ")
+
     print("Choose two files. Pick the older file first or the program will not execute correctly.")
-    #selecting 1 uses the function to convert pdfs to excel, and save the new excel files in the same location as the pdfs. 
-    if user_input == "1": 
-        tfff_old = convert_pdf_to_excel("OLD")
-        tfff_new = convert_pdf_to_excel("NEW")
-    #selecting 2 allows user to select excel files directly for comparison.    
-    elif user_input == "2":   
-        tfff_old = get_input_path_for_excel("OLD")
-        tfff_new = get_input_path_for_excel("NEW")    
-            
-    else:
-        print("Invalid input. Exiting.")
-        exit()
+
+   
+    tfff_old = get_file_location("OLD")
+    tfff_new = get_file_location("NEW")    
+    
+    if tfff_old.lower().endswith(".pdf"):
+        tfff_old = convert_pdf_to_excel(tfff_old)
+    if tfff_new.lower().endswith(".pdf"):
+        tfff_new = convert_pdf_to_excel(tfff_new)
+
     #display selected file paths
     print("\nOld file:", tfff_old)
     print("New file:", tfff_new)
