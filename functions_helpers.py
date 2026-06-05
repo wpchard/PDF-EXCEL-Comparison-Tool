@@ -3,6 +3,7 @@ these functions perform specific tasks such as converting PDFs to Excel, normali
 and determining the status of each entry based on merge results and date comparisons. 
 they are designed to be called by the main functions in comparison_tool_functions.py to keep the code organized and modular."""
 import pandas as pd
+import numpy as np
 import datetime
 from tkinter.filedialog import askopenfilename
 import camelot

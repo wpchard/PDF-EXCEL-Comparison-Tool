@@ -1,7 +1,6 @@
 #main functions for the TFFF comparison tool. these functions handle the file input, data cleaning, merging and comparing, and output of the final report. they utilize helper functions from the comparison_tool_helper_functions.py file to perform specific cleaning and normalization tasks on the data.
 # Import libraries:
 import pandas as pd
-import numpy as np
 import time
 from tkinter import Tk
 from tkinter.filedialog import asksaveasfilename
