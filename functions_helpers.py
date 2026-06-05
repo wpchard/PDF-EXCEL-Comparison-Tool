@@ -1,4 +1,7 @@
-#helper functions for the TFFF comparison tool. these functions perform specific tasks such as converting PDFs to Excel, normalizing serial numbers, fixing common formatting issues from PDF imports, and determining the status of each entry based on merge results and date comparisons. they are designed to be called by the main functions in comparison_tool_functions.py to keep the code organized and modular.
+"""helper functions for the TFFF comparison tool. 
+these functions perform specific tasks such as converting PDFs to Excel, normalizing serial numbers, fixing common formatting issues from PDF imports, 
+and determining the status of each entry based on merge results and date comparisons. 
+they are designed to be called by the main functions in comparison_tool_functions.py to keep the code organized and modular."""
 import pandas as pd
 import datetime
 from tkinter.filedialog import askopenfilename
@@ -13,8 +16,22 @@ merge_key = "SERIAL NO."
 date_column = "LAST SCAN DATE"
 old_date_col = f"{date_column}_OLD"
 
+#gets excel file path from the user
+def get_file_location(label="input"):
+    Tk().withdraw()
+    print(f"Select {label} PDF or Excel file:")
+    file_path = askopenfilename(
+        filetypes=[("All Supported", "*.pdf *.xlsx"), ("PDF Files", "*.pdf"), ("Excel Files", "*.xlsx")]
+    )
+    if not file_path:
+        print("No file selected.")
+        exit()
+    return file_path
 
-# This function converts a PDF file to Excel format by extracting tables using Camelot. It prompts the user to select a PDF file, processes the tables to extract relevant information based on fixed character positions, and saves the cleaned data to a new Excel file in the same directory as the original PDF. The function returns the path to the newly created Excel file for further processing.
+"""This function converts a PDF file to Excel format by extracting tables using Camelot. 
+It prompts the user to select a PDF file, processes the tables to extract relevant information based on fixed character positions,
+and saves the cleaned data to a new Excel file in the same directory as the original PDF. 
+The function returns the path to the newly created Excel file for further processing."""
 def convert_pdf_to_excel(tfff):
     Tk().withdraw()
     pdf_path = tfff
@@ -60,43 +77,10 @@ def convert_pdf_to_excel(tfff):
     print(f"\nCreated: {excel_path}")
     return excel_path
 
-
-#gets excel file path from the user
-def get_file_location(label="input"):
-    Tk().withdraw()
-    print(f"Select {label} PDF or Excel file:")
-    file_path = askopenfilename(
-        filetypes=[("All Supported", "*.pdf *.xlsx"), ("PDF Files", "*.pdf"), ("Excel Files", "*.xlsx")]
-    )
-    if not file_path:
-        print("No file selected.")
-        exit()
-    return file_path
-
-# This function checks if a given value is a valid date. It handles various formats and ensures that the date falls within a reasonable range (2020-2035). It also filters out values that are likely to be non-date text, such as those starting with letters or empty strings.
-def is_valid_date(value):
-
-    if pd.isna(value):
-        return False
-
-    if isinstance(value, (pd.Timestamp, datetime.datetime)):
-        return True
-
-    value = str(value).strip()
-
-    if not value or value[0].isalpha():
-        return False
-
-    parsed = pd.to_datetime(value, errors='coerce')
-
-    return (
-        pd.notna(parsed)
-        and 2020 <= parsed.year <= 2035
-    )
-
-# This function checks if the DataFrame has only one column, which is a common issue when importing from PDFs. If it detects a single-column format, it attempts to split the column into multiple columns based on common delimiters (multiple spaces or tabs). If the split results in more than one column, it assigns new column indices and returns the modified DataFrame. If not, it returns the original DataFrame unchanged.
+"""checks if the DataFrame has only one column, which is a common issue when importing from PDFs. 
+If it detects a single-column format, it attempts to split the column into multiple columns based on common delimiters (multiple spaces or tabs). 
+If the split results in more than one column, it assigns new column indices and returns the modified DataFrame. If not, it returns the original DataFrame unchanged."""
 def fix_single_column(df, sheet_name):
-    #check if only single column exists, if so split. other issues with different columns are fixed in other functions.
     if len(df.columns) != 1:
         return df
     split_df = df[0].astype(str).str.split(
@@ -108,7 +92,9 @@ def fix_single_column(df, sheet_name):
         return split_df
     return df
 
-# This function checks if the first column of the DataFrame appears to be a row number column (numeric values starting from 1 and less than 500). If it detects such a column, it drops it and reassigns the column indices. This is common in TFFF reports where the first column may contain row numbers that are not needed for analysis.
+"""checks if the first column of the DataFrame appears to be a row number column (numeric values starting from 1 and less than 500). 
+If it detects such a column, it drops it and reassigns the column indices. 
+This is common in TFFF reports where the first column may contain row numbers that are not needed for analysis."""
 def remove_row_number_column(df, sheet_name):
     if len(df) == 0 or len(df.columns) == 0:
         return df
@@ -131,30 +117,40 @@ def remove_row_number_column(df, sheet_name):
         pass
     return df
 
-# This function is designed to clean and normalize a single serial number in the DataFrame. 
-def normalize_serial(value):
-    if pd.isna(value):
-        return None
+#sets column length to 8 and assigns expected column names. 
+def assign_columns(df, sheet_name):
+    # Remove extra columns
+    if len(df.columns) > 8:
+        print(
+            f"  Sheet '{sheet_name}': "
+            f"Removing extra columns"
+        )
+        df = df.iloc[:, :8]
+
+    # Pad missing columns
+    while len(df.columns) < 8:
+        df[len(df.columns)] = np.nan
+
+    # Assign expected columns
+    df.columns = EXPECTED_COLUMNS
+
+    return df
+
+"""This function applies the normalization to the entire serial number column, removes invalid entries,
+and ensures we only keep rows with valid numeric serial numbers. 
+It also removes any rows where the serial number is missing or empty after cleaning."""
+def clean_serial_column(df, column_name):
+    df = df.copy()
+    df = df[df[column_name].notna()]
     
-    # Convert to string first
-    val_str = str(value).strip()
+    # Use the module-level normalize_serial function
+    df[column_name] = df[column_name].apply(normalize_serial)
     
-    # Remove common artifacts from PDF conversion
-    val_str = val_str.replace('\n', '').replace('\r', '').replace('\t', '')
-    val_str = val_str.replace('\u00A0', '')  # non-breaking space
-    val_str = val_str.replace(',', '')        # thousand separators
-    val_str = val_str.replace(' ', '')
+    df = df[df[column_name].notna()]
+    df = df[df[column_name] != '']
+    df = df[df[column_name].str.match(r'^\d+$', na=False)]
     
-    # Handle float strings like "12345.0" -> "12345"
-    try:
-        num = float(val_str)
-        if num.is_integer():
-            return str(int(num))
-        else:
-            return str(num)
-    except ValueError:
-        # Not a number, return cleaned string
-        return val_str.upper()
+    return df
 
 #fixes blank spaces for new entries in scan description, or descriptions with only partial information
 def normalize_scan_description(df):
@@ -203,6 +199,7 @@ def determine_status(row):
     #catch strange cases
     return 'Unknown'
 
+#applies mild formatting to excel columns to fit them depending on the length of the content.
 def auto_fit_columns(file_path, sheet_name):
     
     workbook = load_workbook(file_path)
@@ -226,3 +223,52 @@ def auto_fit_columns(file_path, sheet_name):
         worksheet.column_dimensions[column_letter].width = adjusted_width
     
     workbook.save(file_path)
+     
+"""checks if a given value is a valid date. It handles various formats and ensures that the date falls within a reasonable range (2020-2035). 
+It also filters out values that are likely to be non-date text, such as those starting with letters or empty strings."""
+def is_valid_date(value):
+
+    if pd.isna(value):
+        return False
+
+    if isinstance(value, (pd.Timestamp, datetime.datetime)):
+        return True
+
+    value = str(value).strip()
+
+    if not value or value[0].isalpha():
+        return False
+
+    parsed = pd.to_datetime(value, errors='coerce')
+
+    return (
+        pd.notna(parsed)
+        and 2020 <= parsed.year <= 2035
+    )
+
+"""cleans and normalizes a single serial number in the DataFrame. """
+def normalize_serial(value):
+    if pd.isna(value):
+        return None
+    
+    # Convert to string first
+    val_str = str(value).strip()
+    
+    # Remove common artifacts from PDF conversion
+    val_str = val_str.replace('\n', '').replace('\r', '').replace('\t', '')
+    val_str = val_str.replace('\u00A0', '')  # non-breaking space
+    val_str = val_str.replace(',', '')        # thousand separators
+    val_str = val_str.replace(' ', '')
+    
+    # Handle float strings like "12345.0" -> "12345"
+    try:
+        num = float(val_str)
+        if num.is_integer():
+            return str(int(num))
+        else:
+            return str(num)
+    except ValueError:
+        # Not a number, return cleaned string
+        return val_str.upper()
+
+

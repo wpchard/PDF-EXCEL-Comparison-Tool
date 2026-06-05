@@ -5,13 +5,11 @@ import numpy as np
 import time
 from tkinter import Tk
 from tkinter.filedialog import asksaveasfilename
-from functions_helpers import (convert_pdf_to_excel,get_file_location, determine_status, fix_single_column, remove_row_number_column, normalize_serial, normalize_scan_description, auto_fit_columns, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
+from functions_helpers import (convert_pdf_to_excel,get_file_location, determine_status, fix_single_column, remove_row_number_column, assign_columns, clean_serial_column,
+                               normalize_serial, normalize_scan_description, auto_fit_columns, date_column, old_date_col, EXPECTED_COLUMNS, merge_key)
 
 #prints header and gets file paths of the two documents to compare. handles both pdf and excel files.
 def get_file_paths():
-    print("FF3 TFFF Comparison Tool - Version 3.3\n")
-    print("Choose two files. Pick the older file first or the program will not execute correctly.")
-   
     tfff_old = get_file_location("OLD")
     tfff_new = get_file_location("NEW")    
     
@@ -26,19 +24,9 @@ def get_file_paths():
     print("Reading Excel files...\n")
     return tfff_old, tfff_new
 
-#function to find the directory to save the output file. also adds the name of the file that includes the date of creation.
-def get_output_path():
-    Tk().withdraw()
-    print("Select location to save output Excel file:")
-    date = time.strftime("%m-%d-%Y")
-
-    return asksaveasfilename(
-        defaultextension=".xlsx",
-        initialfile=f"tfff_wt_updated_info_{date}.xlsx",
-        filetypes=[("Excel files", "*.xlsx")]
-    )
-
-# This function reads all sheets from the given Excel file, cleans and standardizes the data, and combines it into a single DataFrame. It handles various formatting issues commonly found in TFFF reports, such as single-column imports, row number columns, and inconsistent column counts. It also applies serial number cleaning to ensure consistent formatting across all entries.
+"""This function reads all sheets from the given Excel file, cleans and standardizes the data, and combines it into a single DataFrame.
+It handles various formatting issues commonly found in TFFF reports, such as single-column imports, row number columns, and inconsistent column counts. 
+It also applies serial number cleaning to ensure consistent formatting across all entries."""
 def read_and_clean_sheets(file_path):
 
     excel_file = pd.ExcelFile(file_path)
@@ -62,37 +50,7 @@ def read_and_clean_sheets(file_path):
     combined = pd.concat(dataframes, ignore_index=True)
     return combined
 
-def assign_columns(df, sheet_name):
-    # Remove extra columns
-    if len(df.columns) > 8:
-        print(
-            f"  Sheet '{sheet_name}': "
-            f"Removing extra columns"
-        )
-        df = df.iloc[:, :8]
 
-    # Pad missing columns
-    while len(df.columns) < 8:
-        df[len(df.columns)] = np.nan
-
-    # Assign expected columns
-    df.columns = EXPECTED_COLUMNS
-
-    return df
-
-#this function applies the normalization to the entire serial number column, removes invalid entries, and ensures we only keep rows with valid numeric serial numbers. It also removes any rows where the serial number is missing or empty after cleaning.
-def clean_serial_column(df, column_name):
-    df = df.copy()
-    df = df[df[column_name].notna()]
-    
-    # Use the module-level normalize_serial function
-    df[column_name] = df[column_name].apply(normalize_serial)
-    
-    df = df[df[column_name].notna()]
-    df = df[df[column_name] != '']
-    df = df[df[column_name].str.match(r'^\d+$', na=False)]
-    
-    return df
 
 #create the merged dataframe by cleaning some columns and comparing the old column date and new column date
 def merge_and_compare(tfff_old, tfff_new):
@@ -106,7 +64,8 @@ def merge_and_compare(tfff_old, tfff_new):
     old_cols_to_suffix = [ c for c in old_cols.columns if c != merge_key and c != f"{date_column}_OLD" and c in tfff_new.columns]
     old_cols.rename(columns={c: f"{c}_OLD" for c in old_cols_to_suffix}, inplace=True)
 
-    # Merge the new and old dataframes on the merge key (SERIAL NO.) using an outer join to keep all records from both files. This allows us to identify added, removed, and changed rows based on the presence of data in the new and old columns.
+    # Merge the new and old dataframes on the merge key (SERIAL NO.) using an outer join to keep all records from both files.
+    # This allows us to identify added, removed, and changed rows based on the presence of data in the new and old columns.
     tfff_merged = pd.merge(tfff_new,old_cols, on=merge_key,how="outer",indicator=True)
 
   #convert dates of all date values to datetime formatting 
@@ -146,6 +105,18 @@ def merge_and_compare(tfff_old, tfff_new):
 
     return tfff_merged
 
+#function to find the directory to save the output file. also adds the name of the file that includes the date of creation.
+def get_output_path():
+    Tk().withdraw()
+    print("Select location to save output Excel file:")
+    date = time.strftime("%m-%d-%Y")
+
+    return asksaveasfilename(
+        defaultextension=".xlsx",
+        initialfile=f"tfff_wt_updated_info_{date}.xlsx",
+        filetypes=[("Excel files", "*.xlsx")]
+    )
+    
 #creates a summary of the changes in the final file and prompts the user to save the report in their desired location.
 def export_report(df, output_path):
 
