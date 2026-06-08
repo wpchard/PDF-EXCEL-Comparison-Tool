@@ -9,7 +9,7 @@ del *.spec
 
 echo Building EXE...
 
-python -m PyInstaller --onefile --console --distpath release FF3PRPT_Comparison_Tool.py
+python -m PyInstaller --onefile --console --distpath release main.py
 
 echo.
 echo Build complete!
