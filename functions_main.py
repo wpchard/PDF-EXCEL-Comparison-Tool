@@ -131,10 +131,10 @@ def export_report(df, output_path):
     total_changed = df["STATUS"].ne("Unchanged").sum()
 
     #build rows for summary and spacing 
-    blank_row = pd.DataFrame([["", ""]], columns=["DATE RECEIVED", "SERIAL NO."])
-    summary_title = pd.DataFrame([["SUMMARY", ""]], columns=["DATE RECEIVED", "SERIAL NO."])
-    total_changed_row = pd.DataFrame([["TOTAL CHANGED", total_changed]], columns=["DATE RECEIVED", "SERIAL NO."])
-    total_rows_row = pd.DataFrame([["TOTAL ROWS", total_rows]], columns=["DATE RECEIVED", "SERIAL NO."])
+    blank_row = pd.DataFrame([["", ""]], columns=status_summary.columns)
+    summary_title = pd.DataFrame([["SUMMARY", ""]], columns=status_summary.columns)
+    total_changed_row = pd.DataFrame([["TOTAL CHANGED", total_changed]], columns=status_summary.columns)
+    total_rows_row = pd.DataFrame([["TOTAL ROWS", total_rows]], columns=status_summary.columns)
 
     #Combine everything and export 
     final_df = pd.concat([df,blank_row,summary_title,status_summary,blank_row,total_changed_row,total_rows_row], ignore_index=True)
