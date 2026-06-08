@@ -2,6 +2,7 @@
 # Import libraries:
 import pandas as pd
 import time
+from openpyxl.styles import PatternFill
 from tkinter import Tk
 from tkinter.filedialog import asksaveasfilename
 from functions_helpers import (convert_pdf_to_excel,get_file_location, determine_status, fix_single_column, remove_row_number_column, assign_columns, clean_serial_column,
@@ -139,7 +140,37 @@ def export_report(df, output_path):
     #Combine everything and export 
     final_df = pd.concat([df,blank_row,summary_title,status_summary,blank_row,total_changed_row,total_rows_row], ignore_index=True)
     final_df.to_excel(output_path, sheet_name="Showing Update Info", index=False)
+       
+    # Apply highlighting to STATUS column
+    workbook = __import__('openpyxl').load_workbook(output_path)
+    worksheet = workbook["Showing Update Info"]
     
+    # Define colors for each status
+    status_colors = {
+        "New Entry": "FFFF00",      # Yellow
+        "Removed": "FF0000",        # Red
+        "New Scan": "00B050",       # Green
+        "Unchanged": None           # No highlighting
+    }
+    
+    # Find STATUS column index
+    status_col_index = None
+    for col_idx, cell in enumerate(worksheet[1], 1):
+        if cell.value == "STATUS":
+            status_col_index = col_idx
+            break
+    
+    if status_col_index:
+        # Apply highlighting to data rows (skip header)
+        for row_idx in range(2, worksheet.max_row + 1):
+            cell = worksheet.cell(row=row_idx, column=status_col_index)
+            status_value = cell.value
+            
+            if status_value in status_colors and status_colors[status_value]:
+                color = status_colors[status_value]
+                cell.fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+    
+    workbook.save(output_path)
     # Auto-fit column widths
     auto_fit_columns(output_path, "Showing Update Info")
     

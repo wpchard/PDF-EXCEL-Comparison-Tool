@@ -1,10 +1,10 @@
-#TFFF Comparison Tool - Version 3.3
+#TFFF Comparison Tool - Version 3.5
 # Reads TFFF reports directly from Excel and/ or pdf files and compares them to identify and summarize changes.
 
 from functions_main import (export_report, get_output_path, get_file_paths, read_and_clean_sheets, merge_and_compare)
 
 def main():
-    print("FF3 TFFF Comparison Tool - Version 3.3\n")
+    print("FF3 TFFF Comparison Tool - Version 3.5\n")
     print("Choose two files. Pick the older file first or the program will not execute correctly.")
     
     #gets file paths for the two documents to compare.
