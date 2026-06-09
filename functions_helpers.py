@@ -10,6 +10,7 @@ import camelot
 import os
 from tkinter import Tk
 from openpyxl import load_workbook
+from openpyxl.styles import PatternFill
 from openpyxl.utils import get_column_letter
 #define some commonly used variables that will be used in multiple functions
 EXPECTED_COLUMNS = ['DATE RECEIVED', 'SERIAL NO.', 'CCAM', 'CUST #', 'CUSTOMER NAME', 'ORIG. WO#', 'LAST SCAN DATE', 'LAST SCAN DESCRIPTION']
@@ -272,4 +273,36 @@ def normalize_serial(value):
         # Not a number, return cleaned string
         return val_str.upper()
 
-
+def highlight_rows(output_path):
+    # Apply highlighting to entire rows based on STATUS column
+    workbook = load_workbook(output_path)
+    worksheet = workbook["Showing Update Info"]
+    
+    # Define colors for each status
+    status_colors = {
+        "New Entry": "FFFF00",      # Yellow
+        "Removed": "FF0000",        # Red
+        "New Scan": "00B050",       # Green
+        "Unchanged": None           # No highlighting
+    }
+    
+    # Find STATUS column index
+    status_col_index = None
+    for col_idx, cell in enumerate(worksheet[1], 1):
+        if cell.value == "STATUS":
+            status_col_index = col_idx
+            break
+    
+    if status_col_index:
+        # Apply highlighting to entire rows (skip header)
+        for row_idx in range(2, worksheet.max_row + 1):
+            cell = worksheet.cell(row=row_idx, column=status_col_index)
+            status_value = cell.value
+            
+            if status_value in status_colors and status_colors[status_value]:
+                color = status_colors[status_value]
+                fill = PatternFill(start_color=color, end_color=color, fill_type="solid")
+                # Apply to all cells in the row
+                for col_idx in range(1, worksheet.max_column + 1):
+                    worksheet.cell(row=row_idx, column=col_idx).fill = fill
+    workbook.save(output_path)
